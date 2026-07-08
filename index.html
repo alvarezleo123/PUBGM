@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Card Swap</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body data-theme="dark">
+
+<div id="app">
+
+  <!-- ===================== TOP BAR ===================== -->
+  <header class="topbar">
+    <div class="brand-badge">
+      <span class="brand-badge-text"><span class="brand-cardswap">CARD SWAP</span><span class="brand-star">★</span></span>
+    </div>
+    <div class="topbar-actions">
+      <button id="langToggle" class="icon-pill" type="button" aria-label="Switch language">
+        <span id="langFlag">🇷🇺</span><span id="langCode">RU</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================== SCREEN: REGISTRATION ===================== -->
+  <section id="screen-register" class="screen active">
+    <div class="register-wrap fade-in">
+      <div class="register-hero">
+        <h1 data-i18n="regTitle">Добро пожаловать!</h1>
+      </div>
+
+      <div class="reg-avatar-block">
+        <div class="user-avatar reg-avatar" id="regAvatarPreview">
+          <span class="reg-avatar-fallback">@</span>
+        </div>
+        <button type="button" id="regEditAvatarBtn" class="edit-pill-btn">
+          <span class="edit-pill-icon">✎</span>
+          <span data-i18n="editBtn">Редактировать</span>
+        </button>
+      </div>
+
+      <form id="registerForm" class="register-form" autocomplete="off">
+        <label class="field">
+          <span class="field-label" data-i18n="nicknameLabel">Никнейм</span>
+          <div class="field-input-wrap">
+            <input id="nicknameInput" type="text" maxlength="20" data-i18n-placeholder="nicknamePlaceholder" placeholder="Выбери никнейм" required />
+            <span class="field-status-icon" id="nicknameStatusIcon"></span>
+          </div>
+          <span class="field-error" id="nicknameError" data-i18n="nicknameTaken">Этот никнейм уже занят, попробуй другой</span>
+        </label>
+
+        <label class="field">
+          <span class="field-label" data-i18n="gameIdLabel">Игровой ID</span>
+          <div class="field-input-wrap">
+            <input id="gameIdInput" type="text" inputmode="numeric" maxlength="20" data-i18n-placeholder="gameIdPlaceholder" placeholder="Выбери ID" required />
+            <span class="field-status-icon" id="gameIdStatusIcon"></span>
+          </div>
+          <span class="field-error" id="gameIdError" data-i18n="gameIdDigitsOnly">Игровой ID может состоять только из цифр</span>
+        </label>
+
+        <button type="submit" id="registerSubmitBtn" class="btn btn-primary btn-block" data-i18n="startBtn">Продолжить</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===================== MODAL: EDIT AVATAR (registration) ===================== -->
+  <div id="regAvatarModalOverlay" class="modal-overlay">
+    <div class="modal-sheet fade-in">
+      <div class="modal-head">
+        <span data-i18n="editAvatarTitle">Отредактировать аватар</span>
+        <button id="regAvatarModalCloseBtn" class="icon-pill icon-pill-square" aria-label="Close">✕</button>
+      </div>
+      <input type="file" id="regAvatarFileInput" accept="image/png,image/jpeg,image/webp" style="display:none" />
+      <button id="regChooseFromGalleryBtn" class="btn btn-primary btn-block" data-i18n="chooseFromGalleryBtn">Выбрать из галереи</button>
+      <button id="regAvatarCancelBtn" class="btn btn-text btn-block" data-i18n="cancelBtn">Отменить</button>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN: EXCHANGE INTRO (planet) ===================== -->
+  <section id="screen-exchange-intro" class="screen">
+    <div class="planet-scene">
+      <div class="planet-wrap">
+        <div class="planet-sphere">
+          <div class="planet-day-side"></div>
+          <div class="planet-night-side"></div>
+          <div class="planet-terminator"></div>
+          <div class="planet-city-lights"></div>
+        </div>
+        <div class="planet-ring"></div>
+      </div>
+
+      <div class="planet-text">
+        <h2 data-i18n="exchangeIntroTitle">Обменивайся и получай коллекционные карты</h2>
+      </div>
+
+      <button id="planetStartBtn" class="btn btn-primary planet-start-btn" data-i18n="planetStartBtn">Начать</button>
+    </div>
+
+    <p class="muted small planet-disclaimer" data-i18n="planetDisclaimer">Card Swap — это площадка для обмена карточками между игроками. Все сделки совершаются напрямую в PUBG Mobile, сервис не хранит и не передаёт игровые предметы.</p>
+  </section>
+
+  <!-- ===================== SCREEN: COLLECTIONS / SELECTION ===================== -->
+  <section id="screen-home" class="screen">
+    <div class="home-wrap">
+
+      <div class="collection-tabs fade-in" role="tablist">
+        <button class="collection-tab active" data-ctab="past" data-i18n="pastTab">Прошлые коллекции</button>
+        <button class="collection-tab" data-ctab="current" data-i18n="currentTab">Актуальные коллекции</button>
+      </div>
+
+      <div class="mode-tabs fade-in" role="tablist">
+        <button class="mode-tab active" data-mode="have" data-i18n="haveTab">У меня есть</button>
+        <button class="mode-tab" data-mode="want" data-i18n="wantTab">Хочу получить</button>
+      </div>
+
+      <div id="collectionsContainer" class="collections-container">
+        <!-- collections injected by script.js -->
+      </div>
+
+      <div class="bottom-spacer"></div>
+    </div>
+
+    <div class="search-bar">
+      <div id="selectionCounts" class="selection-counts" style="display:none;">
+        <span><span id="haveCount">0</span> <span data-i18n="haveLabel">есть</span></span>
+        <span class="dot">•</span>
+        <span><span id="wantCount">0</span> <span data-i18n="wantLabel">хочу</span></span>
+      </div>
+      <button id="searchBtn" class="btn btn-primary btn-block" disabled>
+        <span data-i18n="searchBtn">Поиск обмена</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: SEARCH / LOADING ===================== -->
+  <section id="screen-search" class="screen">
+    <div class="search-scene">
+      <div class="card-3d-spinner">
+        <div class="card-3d-inner">
+          <div class="card-3d-face card-3d-front">🃏</div>
+          <div class="card-3d-face card-3d-back">◈</div>
+        </div>
+      </div>
+
+      <div class="radar">
+        <div class="radar-ring r1"></div>
+        <div class="radar-ring r2"></div>
+        <div class="radar-ring r3"></div>
+        <div class="radar-sweep"></div>
+        <div class="radar-center"></div>
+      </div>
+
+      <h2 class="search-title" data-i18n="searching">Ищем игрока…</h2>
+      <p class="muted" id="searchSubtitle" data-i18n="searchingHint">Подбираем игрока с подходящими карточками</p>
+      <p class="muted small search-warning" data-i18n="searchLongWarning">⏳ Поиск может занять некоторое время — среди игроков ищем того, кто сейчас может создать трейд</p>
+
+      <button id="cancelSearchBtn" class="btn btn-ghost btn-block" data-i18n="cancelBtn">Отмена</button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: MATCH FOUND (compact, no-scroll) ===================== -->
+  <section id="screen-match" class="screen">
+    <div class="match-wrap fade-in">
+
+      <div class="match-head">
+        <button id="blockFromMatchBtn" class="block-corner-btn" aria-label="Block player">🚫</button>
+        <div class="result-icon-sm">🤝</div>
+        <h2 data-i18n="matchFoundTitle">Игрок найден!</h2>
+      </div>
+
+      <div class="match-card">
+        <div class="match-card-top">
+          <div class="user-avatar match-avatar" id="matchAvatar">P</div>
+          <div class="match-card-meta">
+            <div class="match-nick" id="matchNick">—</div>
+            <div class="match-rating"><span class="star">★</span> <span id="matchRating">—</span></div>
+          </div>
+          <div class="exchange-timer-compact">
+            <span id="exchangeTimer">24:00:00</span>
+          </div>
+        </div>
+
+        <div class="match-id-row">
+          <div>
+            <div class="field-label-sm" data-i18n="matchIdLabel">Игровой ID игрока</div>
+            <div class="match-id" id="matchGameId">—</div>
+          </div>
+          <button id="copyIdBtn" class="btn btn-secondary btn-sm" data-i18n="copyBtn">Копировать</button>
+        </div>
+
+        <div class="match-swap-preview" id="matchSwapPreview"></div>
+
+        <p class="match-instruction" data-i18n="matchInstruction">Добавь этого игрока в друзья в PUBG Mobile и обменяйтесь внутри игры</p>
+      </div>
+
+      <div class="match-actions-row">
+        <button id="viewProfileBtn" class="btn btn-ghost btn-sm" data-i18n="viewProfileBtnShort">Профиль</button>
+        <button id="reportFromMatchBtn" class="btn btn-report btn-sm" data-i18n="reportBtnShort">Пожаловаться</button>
+      </div>
+
+      <button id="completeExchangeBtn" class="btn btn-primary btn-block" data-i18n="completeExchangeBtn">Обмен завершён</button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: RATE EXCHANGE ===================== -->
+  <section id="screen-rate" class="screen">
+    <div class="result-wrap fade-in">
+      <div class="result-icon">✅</div>
+      <h2 data-i18n="rateTitle">Как прошёл обмен?</h2>
+      <p class="muted" id="rateSubtitle" data-i18n="rateSubtitle">Оцени игрока, с которым обменивался — это поможет другим</p>
+
+      <div class="star-rating" id="starRatingInput">
+        <button class="star-btn" data-star="1">★</button>
+        <button class="star-btn" data-star="2">★</button>
+        <button class="star-btn" data-star="3">★</button>
+        <button class="star-btn" data-star="4">★</button>
+        <button class="star-btn" data-star="5">★</button>
+      </div>
+
+      <label class="field">
+        <span class="field-label" data-i18n="commentLabel">Комментарий (необязательно)</span>
+        <textarea id="rateComment" rows="3" maxlength="300" data-i18n-placeholder="commentPlaceholder" placeholder="Как всё прошло?"></textarea>
+      </label>
+
+      <button id="submitRatingBtn" class="btn btn-primary btn-block" data-i18n="submitRatingBtn">Отправить оценку</button>
+      <button id="skipRatingBtn" class="btn btn-text btn-block" data-i18n="skipBtn">Пропустить</button>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: PLAYER PROFILE (public) ===================== -->
+  <section id="screen-player" class="screen">
+    <div class="player-wrap fade-in">
+      <button class="back-btn" id="playerBackBtn">←</button>
+
+      <div class="player-head">
+        <div class="user-avatar player-avatar" id="playerAvatar">P</div>
+        <div class="player-nick" id="playerNick">—</div>
+        <div class="player-rating-big">
+          <span class="star">★</span> <span id="playerRatingBig">—</span>
+          <span class="muted" id="playerRatingCount"></span>
+        </div>
+        <div class="player-bio" id="playerBio"></div>
+      </div>
+
+      <div class="player-stats-row">
+        <div class="player-stat">
+          <div class="stat-num" id="playerTradesTotal">0</div>
+          <div class="stat-label" data-i18n="tradesLabel">обменов</div>
+        </div>
+        <div class="player-stat">
+          <div class="stat-num" id="playerTradesSuccess">0</div>
+          <div class="stat-label" data-i18n="successLabel">успешных</div>
+        </div>
+      </div>
+
+      <button id="reportFromProfileBtn" class="btn btn-report btn-block" data-i18n="reportBtn">Пожаловаться на игрока</button>
+
+      <div class="section-heading">
+        <h3 data-i18n="reviewsTitle">Отзывы</h3>
+      </div>
+      <div id="playerReviewsList" class="reviews-list"></div>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: MY PROFILE ===================== -->
+  <section id="screen-profile" class="screen">
+    <div class="player-wrap fade-in">
+      <div class="section-heading">
+        <h2 data-i18n="navProfile">Профиль</h2>
+      </div>
+
+      <div class="my-profile-avatar-block">
+        <div class="user-avatar reg-avatar" id="profileAvatarPreview">
+          <span class="reg-avatar-fallback">@</span>
+        </div>
+        <button type="button" id="profileEditAvatarBtn" class="edit-pill-btn">
+          <span class="edit-pill-icon">✎</span>
+          <span data-i18n="editBtn">Редактировать</span>
+        </button>
+      </div>
+
+      <label class="field">
+        <span class="field-label" data-i18n="changeNickLabel">Изменить никнейм</span>
+        <div class="field-input-wrap">
+          <input id="editNickInput" type="text" maxlength="20" />
+          <span class="field-status-icon" id="editNickStatusIcon"></span>
+        </div>
+        <span class="field-error" id="editNickError" data-i18n="nicknameTaken">Этот никнейм уже занят, попробуй другой</span>
+        <span class="field-hint" id="nickChangeHint" data-i18n="nickChangeHint">Менять никнейм можно раз в 15 дней</span>
+      </label>
+      <button id="saveProfileBtn" class="btn btn-primary btn-block" data-i18n="saveBtn">Сохранить</button>
+
+      <div class="drawer-section theme-section">
+        <h4 data-i18n="themeTitle">Оформление</h4>
+        <div class="theme-options">
+          <button class="theme-opt" data-theme-choice="dark">
+            <span class="theme-swatch theme-swatch-dark"></span>
+            <span data-i18n="themeDark">Тёмная</span>
+          </button>
+          <button class="theme-opt" data-theme-choice="light">
+            <span class="theme-swatch theme-swatch-light"></span>
+            <span data-i18n="themeLight">Светлая</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <h4 data-i18n="accBlocked">Заблокированные</h4>
+        <div id="blockedList" class="trades-list"></div>
+      </div>
+
+      <div class="danger-zone">
+        <button id="deleteAccountBtn" class="btn btn-danger btn-block" data-i18n="deleteAccountBtn">Удалить аккаунт</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MODAL: EDIT AVATAR (profile) ===================== -->
+  <div id="profileAvatarModalOverlay" class="modal-overlay">
+    <div class="modal-sheet fade-in">
+      <div class="modal-head">
+        <span data-i18n="editAvatarTitle">Отредактировать аватар</span>
+        <button id="profileAvatarModalCloseBtn" class="icon-pill icon-pill-square" aria-label="Close">✕</button>
+      </div>
+      <input type="file" id="avatarFileInput" accept="image/png,image/jpeg,image/webp" style="display:none" />
+      <button id="chooseFromGalleryBtn" class="btn btn-primary btn-block" data-i18n="chooseFromGalleryBtn">Выбрать из галереи</button>
+      <button id="profileAvatarCancelBtn" class="btn btn-text btn-block" data-i18n="cancelBtn">Отменить</button>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN: NOTIFICATIONS ===================== -->
+  <section id="screen-notifications" class="screen">
+    <div class="player-wrap fade-in">
+      <div class="section-heading">
+        <h2 data-i18n="navNotifications">Уведомления</h2>
+      </div>
+
+      <label class="switch-row">
+        <span data-i18n="notifMatches">Совпадения обмена</span>
+        <input type="checkbox" id="notifMatches" checked>
+      </label>
+      <label class="switch-row">
+        <span data-i18n="notifReviews">Новые отзывы</span>
+        <input type="checkbox" id="notifReviews" checked>
+      </label>
+      <label class="switch-row">
+        <span data-i18n="notifNews">Новости и коллекции</span>
+        <input type="checkbox" id="notifNews">
+      </label>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: RATING (self) ===================== -->
+  <section id="screen-rating" class="screen">
+    <div class="player-wrap fade-in">
+      <div class="section-heading">
+        <h2 data-i18n="navRating">Рейтинг</h2>
+      </div>
+
+      <div class="rating-summary">
+        <div class="rating-summary-num" id="myRatingBig">—</div>
+        <div class="rating-summary-sub" id="myRatingCount"></div>
+      </div>
+
+      <div class="section-heading">
+        <h3 data-i18n="reviewsTitle">Отзывы</h3>
+      </div>
+      <div id="myReviewsList" class="reviews-list"></div>
+    </div>
+  </section>
+
+  <!-- ===================== SCREEN: HISTORY ===================== -->
+  <section id="screen-history" class="screen">
+    <div class="player-wrap fade-in">
+      <div class="section-heading">
+        <h2 data-i18n="navHistory">История обменов</h2>
+      </div>
+      <div id="myTradesList" class="trades-list"></div>
+    </div>
+  </section>
+
+  <!-- ===================== BOTTOM NAVIGATION ===================== -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav-item" data-nav="profile">
+      <span class="bottom-nav-icon">👤</span>
+      <span class="bottom-nav-label" data-i18n="navProfile">Профиль</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="notifications">
+      <span class="bottom-nav-icon">🔔</span>
+      <span class="bottom-nav-label" data-i18n="navNotifications">Уведомления</span>
+    </button>
+    <button class="bottom-nav-item bottom-nav-center" data-nav="exchange">
+      <span class="bottom-nav-center-icon">⇄</span>
+      <span class="bottom-nav-label" data-i18n="navExchange">Обмен</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="rating">
+      <span class="bottom-nav-icon">⭐</span>
+      <span class="bottom-nav-label" data-i18n="navRating">Рейтинг</span>
+    </button>
+    <button class="bottom-nav-item" data-nav="history">
+      <span class="bottom-nav-icon">🔄</span>
+      <span class="bottom-nav-label" data-i18n="navHistory">История</span>
+    </button>
+  </nav>
+
+  <!-- ===================== MODAL: REPORT PLAYER ===================== -->
+  <div id="reportModalOverlay" class="modal-overlay">
+    <div class="modal-sheet fade-in">
+      <div class="modal-head">
+        <span data-i18n="reportTitle">Пожаловаться на игрока</span>
+        <button id="reportCloseBtn" class="icon-pill icon-pill-square" aria-label="Close">✕</button>
+      </div>
+
+      <p class="muted small" id="reportTargetLine"></p>
+
+      <div class="report-options" id="reportOptions">
+        <button class="report-opt" data-reason="no_show" data-i18n="reasonNoShow">Не вышел на обмен</button>
+        <button class="report-opt" data-reason="scam" data-i18n="reasonScam">Обманул при обмене</button>
+        <button class="report-opt" data-reason="rude" data-i18n="reasonRude">Оскорбления / грубость</button>
+        <button class="report-opt" data-reason="spam" data-i18n="reasonSpam">Спам / реклама</button>
+        <button class="report-opt" data-reason="other" data-i18n="reasonOther">Другое</button>
+      </div>
+
+      <label class="field" id="reportOtherField" style="display:none;">
+        <span class="field-label" data-i18n="reportOtherLabel">Опиши причину</span>
+        <textarea id="reportOtherText" rows="3" maxlength="300"></textarea>
+      </label>
+
+      <button id="submitReportBtn" class="btn btn-primary btn-block" disabled data-i18n="reportSubmitBtn">Отправить жалобу</button>
+      <p class="muted small report-note" data-i18n="reportNote">Жалоба уходит модератору и не видна другому игроку</p>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: TRADE DETAIL ===================== -->
+  <div id="tradeDetailOverlay" class="modal-overlay">
+    <div class="modal-sheet fade-in">
+      <div class="modal-head">
+        <span data-i18n="tradeDetailTitle">Детали обмена</span>
+        <button id="tradeDetailCloseBtn" class="icon-pill icon-pill-square" aria-label="Close">✕</button>
+      </div>
+
+      <div class="trade-detail-body" id="tradeDetailBody"></div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: DELETE ACCOUNT (double confirm) ===================== -->
+  <div id="deleteAccountOverlay" class="modal-overlay">
+    <div class="modal-sheet fade-in">
+      <div class="modal-head">
+        <span data-i18n="deleteConfirmTitle">Удалить аккаунт?</span>
+        <button id="deleteAccountCloseBtn" class="icon-pill icon-pill-square" aria-label="Close">✕</button>
+      </div>
+      <p class="muted small" data-i18n="deleteConfirmText">Это действие необратимо. Все твои данные — карты, история обменов, рейтинг — будут удалены из базы данных без возможности восстановления.</p>
+      <button id="confirmDeleteStep1Btn" class="btn btn-danger btn-block" data-i18n="deleteConfirmStep1Btn">Да, удалить аккаунт</button>
+      <button id="cancelDeleteBtn" class="btn btn-ghost btn-block" data-i18n="cancelBtn">Отмена</button>
+    </div>
+  </div>
+
+  <div id="deleteAccountOverlay2" class="modal-overlay">
+    <div class="modal-sheet fade-in">
+      <div class="modal-head">
+        <span data-i18n="deleteConfirmTitle2">Точно уверен?</span>
+      </div>
+      <p class="muted small" data-i18n="deleteConfirmText2">Последнее предупреждение: аккаунт удалится навсегда, отменить это будет нельзя.</p>
+      <button id="confirmDeleteStep2Btn" class="btn btn-danger btn-block" data-i18n="deleteConfirmStep2Btn">Удалить навсегда</button>
+      <button id="cancelDeleteBtn2" class="btn btn-ghost btn-block" data-i18n="cancelBtn">Отмена</button>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL: TRADE LIMIT CHECK ===================== -->
+  <div id="tradeLimitModalOverlay" class="modal-overlay modal-overlay-center">
+    <div class="modal-card fade-in">
+      <div class="modal-head">
+        <span data-i18n="limitModalTitle">Можешь создать обмен карт?</span>
+      </div>
+      <p class="muted small" data-i18n="limitModalText">В PUBG Mobile обмен доступен раз в 3 дня. Уточни у себя в игре, есть ли у тебя сейчас лимит.</p>
+
+      <div class="limit-choice-row">
+        <button id="limitYesBtn" class="limit-choice-btn limit-choice-yes" data-i18n="limitYesBtn">Да, могу</button>
+        <button id="limitNoBtn" class="limit-choice-btn limit-choice-no" data-i18n="limitNoBtn">Нет, лимит</button>
+      </div>
+
+      <div id="limitAnswerInfo" class="limit-answer-info"></div>
+
+      <button id="limitConfirmSearchBtn" class="btn btn-primary btn-block" style="display:none; margin-top:10px;" data-i18n="limitConfirmBtn">Подтвердить и искать</button>
+    </div>
+  </div>
+
+  <!-- ===================== TOAST ===================== -->
+  <div id="toast" class="toast"></div>
+
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
